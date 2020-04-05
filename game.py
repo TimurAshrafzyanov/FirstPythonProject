@@ -65,16 +65,17 @@ def Game_making():
             if direction == 0:
                 self.rect.x += 5
                 self.image = self.player_right_img
-                self.image.set_colorkey(BLACK)
-                self.mask = pygame.mask.from_surface(self.image)
-            if direction == 1:
+            elif direction == 1:
                 self.rect.x -= 5
                 self.image = self.player_left_img
+
+            if direction in (0, 1):
                 self.image.set_colorkey(BLACK)
                 self.mask = pygame.mask.from_surface(self.image)
-            if direction == 2:
+
+            elif direction == 2:
                 self.rect.y += 6
-            if direction == 3:
+            elif direction == 3:
                 self.rect.y -= 6
 
         def go_right(self):
@@ -116,20 +117,17 @@ def Game_making():
         def make_harder():
             nonlocal level_mode
             nonlocal MODE_ID
-            if level_mode in (0, 2):
+            if level_mode == 10:
+                pass
+            elif level_mode in (0, 2):
                 MODE_ID += 1
-                level_mode += 1
-            elif level_mode in (1, 3):
+            elif level_mode in (1, 3, 9):
                 Pumpkin.falling_speed += 1
-                level_mode += 1
-            elif level_mode in (4, 5, 7, 8):
-                level_mode += 1
             elif level_mode == 6:
                 MODE_ID += 1
                 Pumpkin.falling_speed -= 1
-                level_mode += 1
-            elif level_mode == 9:
-                Pumpkin.falling_speed += 1
+
+            if level_mode < 10:
                 level_mode += 1
 
         # GAME INITIALIZING
@@ -160,10 +158,17 @@ def Game_making():
         # IMAGE INSERTING
         game_folder = os.path.dirname(__file__)
         img_folder = os.path.join(game_folder, 'img')
-        player_right_img = pygame.image.load(os.path.join(img_folder, 'ghost_r{}.png'.format(selected))).convert()
-        player_left_img = pygame.image.load(os.path.join(img_folder, 'ghost_l{}.png'.format(selected))).convert()
-        pumpkin_img = pygame.image.load(os.path.join(img_folder, 'pumpkin{}.png'.format(selected))).convert()
-        background_img = pygame.image.load(os.path.join(img_folder, 'background{}.png'.format(selected))).convert()
+        player_r_img_path = os.path.join(img_folder, 'ghost_r{}.png'.format(selected))
+        player_right_img = pygame.image.load(player_r_img_path).convert()
+
+        player_l_img_path = os.path.join(img_folder, 'ghost_l{}.png'.format(selected))
+        player_left_img = pygame.image.load(player_l_img_path).convert()
+
+        pumpkin_img_path = os.path.join(img_folder, 'pumpkin{}.png'.format(selected))
+        pumpkin_img = pygame.image.load(pumpkin_img_path).convert()
+
+        back_img_path = os.path.join(img_folder, 'background{}.png'.format(selected))
+        background_img = pygame.image.load(back_img_path).convert()
 
         # SPRITES FORMING
         all_sprites = pygame.sprite.Group()
@@ -196,8 +201,8 @@ def Game_making():
                     all_sprites.add(pumpkins)
                 if event.type == MAKING_HARDER_TIME:
                     make_harder()
-
-            if pygame.sprite.spritecollide(player, pumpkins, True, pygame.sprite.collide_mask):
+            collide_mask = pygame.sprite.collide_mask
+            if pygame.sprite.spritecollide(player, pumpkins, True, collide_mask):
                 COUNT_OF_LIVES -= 1
 
             all_sprites.update()
@@ -207,12 +212,14 @@ def Game_making():
             # SCORE TABLE ADDING
             CURRENT_SCORE = (pygame.time.get_ticks() - starting_time) // 100
             first_font = pygame.font.Font(None, 50)
-            score_table = first_font.render('Score : {}'.format(CURRENT_SCORE), 1, BLACK, ORANGE)
+            score_str = 'Score : {}'.format(CURRENT_SCORE)
+            score_table = first_font.render(score_str, 1, BLACK, ORANGE)
             screen.blit(score_table, (200, 30))
 
             # LIVES TABLE ADDING
             second_font = pygame.font.Font(None, 50)
-            lives_table = second_font.render('Lives : {}'.format(COUNT_OF_LIVES), 1, BLACK, PINK)
+            lives_str = 'Lives : {}'.format(COUNT_OF_LIVES)
+            lives_table = second_font.render(lives_str, 1, BLACK, PINK)
             screen.blit(lives_table, (20, 30))
 
             pygame.display.flip()
@@ -260,13 +267,25 @@ def choose_mod_button_clicked():
     choose_mod_window.geometry('{}x{}+0+0'.format(window_width, window_height))
     center(choose_mod_window)
 
-    var = IntVar(choose_mod_window)
-    i = 1
-    for mode in modes_array:
-        button = Radiobutton(choose_mod_window, font=(None, 20), text=mode[0], value=i, variable=var)
-        button.config(command=which_mode_selected)
-        button.pack()
-        i += 1
+    if len(modes_array) == 1:
+        one_mode_lbl = Label(choose_mod_window, text='You have only one mode')
+        one_mode_lbl.config(font=(None, 20, 'bold'))
+        one_mode_lbl.place(relx=0.5, rely=0.1, anchor='center')
+    else:
+        choose_lbl = Label(choose_mod_window, text='Choose your mode:')
+        choose_lbl.config(font=(None, 20, 'bold'))
+        choose_lbl.pack()
+
+        var = IntVar(choose_mod_window)
+        i = 1
+        for mode in modes_array:
+            button = Radiobutton(choose_mod_window, font=(None, 20))
+            button.config(text=mode[0])
+            button.config(value=i)
+            button.config(variable=var)
+            button.config(command=which_mode_selected)
+            button.pack()
+            i += 1
 
     # ADD GO BACK BUTTON
     QuitButton('Go back', choose_mod_window)
@@ -275,7 +294,8 @@ def choose_mod_button_clicked():
 
 
 def add_bought_table(shop_window, x_cord, y_cord):
-    bought_lbl = Label(shop_window, text='Bought', bg='green', font=(None, 15, 'bold'))
+    bought_lbl = Label(shop_window, text='Bought', bg='green')
+    bought_lbl.config(font=(None, 15, 'bold'))
     bought_lbl.place(relx=x_cord, rely=y_cord, anchor='center')
 
 
@@ -291,18 +311,23 @@ def add_buy_button(shop_window, cost, x_cord, y_cord, name):
             add_bought_table(shop_window, x_cord, y_cord + 0.15)
             global modes_array
             modes_array.append(name)
-    new_btn = Button(shop_window, text='Buy', bg='pink', fg='black', height=3, width=15, command=buy_button_clicked)
+    new_btn = Button(shop_window, text='Buy', bg='pink', fg='black')
+    new_btn.config(height=3)
+    new_btn.config(width=13)
+    new_btn.config(command=buy_button_clicked)
     new_btn.place(relx=x_cord, rely=y_cord + 0.15, anchor='center')
 
 
 def add_mode(shop_window, name, cost, x_cord, y_cord):
-    new_lbl = Label(shop_window, text='{} \n Cost : {} coins'.format(name[0], cost), font=(None, 20))
+    new_lbl_text = '{} \n Cost : {} coins'.format(name[0], cost)
+    new_lbl = Label(shop_window, text=new_lbl_text, font=(None, 18))
     new_lbl.place(relx=x_cord, rely=y_cord, anchor='center')
     add_buy_button(shop_window, cost, x_cord, y_cord, name)
 
 
 def add_bought_mode(shop_window, name, x_cord, y_cord):
-    default_lbl = Label(shop_window, text='{} \n Cost : -'.format(name[0]), font=(None, 20))
+    default_lbl_text = '{} \n Cost : -'.format(name[0])
+    default_lbl = Label(shop_window, text=default_lbl_text, font=(None, 20))
     default_lbl.place(relx=x_cord, rely=y_cord, anchor='center')
     add_bought_table(shop_window, x_cord=x_cord, y_cord=y_cord + 0.15)
 
@@ -314,22 +339,46 @@ def shop_button_clicked():
     shop_window.geometry('{}x{}+0+0'.format(window_width, window_height))
     center(shop_window)
     global money
-    money_lbl = Label(shop_window, text='You have {} coins'.format(money), font=(None, 20, 'bold'))
+    money_lbl_text = 'You have {} coins'.format(money)
+    money_lbl = Label(shop_window, text=money_lbl_text, font=(None, 20, 'bold'))
     money_lbl.place(relx=0.5, rely=0.1, anchor='center')
 
     # ADD ALL BUTTONS
     number = 0
     for mode in all_modes_array:
         if mode in modes_array:
-            add_bought_mode(shop_window, name=mode, x_cord=cords[number][0], y_cord=cords[number][1])
+            add_bought_mode(shop_window, mode, cords[number][0], cords[number][1])
         else:
-            add_mode(shop_window, name=mode, cost=costs[number], x_cord=cords[number][0], y_cord=cords[number][1])
+            add_mode(shop_window, mode, costs[number], cords[number][0], cords[number][1])
         number += 1
 
     # ADD GO BACK BUTTON
     QuitButton('Go back', shop_window)
 
     shop_window.mainloop()
+
+
+def rules_button_clicked():
+    rules_window = Tk()
+    rules_window.title("Rules")
+    rules_window.geometry('{}x{}+0+0'.format(window_width, window_height))
+    center(rules_window)
+
+    # ADD RULES
+    big_rules_lbl = Label(rules_window, text='Rules:', font=(None, 20, 'bold'))
+    big_rules_lbl.place(relx=0.5, rely=0.08, anchor='center')
+
+    file = open("img/rules.txt", 'r')
+    rules = file.read()
+    file.close()
+
+    rules_lbl = Label(rules_window, text=rules, font=(None, 15))
+    rules_lbl.place(relx=0.5, rely=0.4, anchor='center')
+
+    # ADD GO BACK BUTTON
+    QuitButton('Go back', rules_window)
+
+    rules_window.mainloop()
 
 
 class QuitButton(Button):
@@ -356,18 +405,26 @@ max_score = 0
 last_score = 0
 money = 0
 selected_mode = 1
-record_lbl = Label(text='Your record : {}'.format(max_score), font=(None, 20, 'bold'))
+record_lbl_text = 'Your record : {}'.format(max_score)
+record_lbl = Label(text=record_lbl_text, font=(None, 20, 'bold'))
 record_lbl.pack()
-last_score_lbl = Label(text='Your last score : {}'.format(last_score), font=(None, 20, 'bold'))
+last_score_lbl_text = 'Your last score : {}'.format(last_score)
+last_score_lbl = Label(text=last_score_lbl_text, font=(None, 20, 'bold'))
 last_score_lbl.pack()
 
 
 # MAKING START BUTTON
-start_btn = Button(window, text='Start game', bg='pink', fg='black', height=7, width=30, command=start_button_clicked)
+start_btn = Button(window, text='Start game', bg='pink', fg='black')
+start_btn.config(height=7)
+start_btn.config(width=30)
+start_btn.config(command=start_button_clicked)
 start_btn.place(relx=0.5, rely=0.5, anchor='center')
 
 # MAKING SHOP BUTTON
-shop_btn = Button(window, text='Shop', bg='pink', fg='black', height=3, width=15, command=shop_button_clicked)
+shop_btn = Button(window, text='Shop', bg='pink', fg='black')
+shop_btn.config(height=3)
+shop_btn.config(width=15)
+shop_btn.config(command=shop_button_clicked)
 shop_btn.place(relx=0.9, rely=0.9, anchor='center')
 
 # MAKING CHOOSE MOD BUTTON
@@ -375,9 +432,18 @@ modes_array = [('1.Halloween', 1)]
 all_modes_array = [('1.Halloween', 1), ('2.Dark Halloween', 2), ('3.Wild West', 3)]
 cords = [(0.17, 0.3), (0.5, 0.3), (0.83, 0.3)]
 costs = [0, 300, 750]
-choose_mod_btn = Button(window, text='Choose \n mode', bg='pink', fg='black', height=3, width=15)
+choose_mod_btn = Button(window, text='Choose \n mode', bg='pink', fg='black')
+choose_mod_btn.config(height=3)
+choose_mod_btn.config(width=15)
 choose_mod_btn.config(command=choose_mod_button_clicked)
 choose_mod_btn.place(relx=0.9, rely=0.75, anchor='center')
+
+# MAKING RULES BUTTON
+rules_btn = Button(window, text='Rules', bg='pink', fg='black')
+rules_btn.config(height=3)
+rules_btn.config(width=15)
+rules_btn.config(command=rules_button_clicked)
+rules_btn.place(relx=0.9, rely=0.6, anchor='center')
 
 # MAKING EXIT BUTTON
 QuitButton('Exit', window)

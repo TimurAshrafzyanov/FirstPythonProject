@@ -1,0 +1,10 @@
+* You are playing for character and you have to avoid falling objects
+* At start you have 3 lives and if you touch falling object,
+you will lose one of them
+* When you will have 0 lives, game will be over
+
+* You get 1 coin for each 10 points of your score
+* You can buy new modes for coins in shop and
+choose it in "choose mode" menu 
+* If you don`t have enough money and tap buy botton,
+nothing will happen
