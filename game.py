@@ -373,7 +373,7 @@ def rules_button_clicked():
     file.close()
 
     rules_lbl = Label(rules_window, text=rules, font=(None, 15))
-    rules_lbl.place(relx=0.5, rely=0.4, anchor='center')
+    rules_lbl.place(relx=0.5, rely=0.5, anchor='center')
 
     # ADD GO BACK BUTTON
     QuitButton('Go back', rules_window)
@@ -430,7 +430,7 @@ shop_btn.place(relx=0.9, rely=0.9, anchor='center')
 # MAKING CHOOSE MOD BUTTON
 modes_array = [('1.Halloween', 1)]
 all_modes_array = [('1.Halloween', 1), ('2.Dark Halloween', 2), ('3.Wild West', 3)]
-cords = [(0.17, 0.3), (0.5, 0.3), (0.83, 0.3)]
+cords = [(0.15, 0.3), (0.48, 0.3), (0.83, 0.3)]
 costs = [0, 300, 750]
 choose_mod_btn = Button(window, text='Choose \n mode', bg='pink', fg='black')
 choose_mod_btn.config(height=3)

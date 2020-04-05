@@ -1,4 +1,5 @@
-* You are playing for character and you have to avoid falling objects
+* You are playing for character and you have to
+avoid falling objects
 * At start you have 3 lives and if you touch falling object,
 you will lose one of them
 * When you will have 0 lives, game will be over
