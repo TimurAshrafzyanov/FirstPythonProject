@@ -1,5 +1,4 @@
 # FirstPythonProject
-For first python project
 
 
 *This is my first python project (based on pygame library)*
